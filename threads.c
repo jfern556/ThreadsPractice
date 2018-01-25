@@ -5,9 +5,9 @@
 
 
 //-------------------
-void* SimpleThread(int);
+void* SimpleThread();
 void* say_hello();
-int validateInput(char, int);
+int validateInput(char*, int);
 //-------------------
 int SharedVariable = 0; 
 //-------------------
@@ -18,35 +18,45 @@ int main( int argc, char *argv[]){
 	printf("*** The Program has Started ***\n");
 	printf("*******************************\n");
 
-	char c;
-	c = (*argv[1]);
-
-	int result;
+	char *c;// this is basically a string
+	c = (argv[1]);
 	
-	result = validateInput(c, argc);
+	int result = validateInput(c, argc);
 
-	printf("this is argc: %d and this is the number: %d\n" ,argc , result);
+	if(result == 0){
+		printf("Please enter a NUMBER greater than 0\n ");
+		return 0;
+	}
 
-	pthread_t myThread;
+	pthread_t myThread[result];
 
-	pthread_create(&myThread, NULL, say_hello, "Hello" );
+	for (int i = 0; i < result; i++ ){
+	 
+		printf("this is argc: %d and this is i: %d\n" ,argc , i);
 
-	pthread_join(myThread, NULL);
+		pthread_create(&myThread[i], NULL, SimpleThread, &i );
 
-	
+	}// end of for
+
+	for (int i=0; i < result; i++){
+
+		pthread_join(myThread[i], NULL);
+
+	}
 		
 }
 
 //if you add 0 to a char, it basically returns its ASCII value.
 //so if we do char - 48 we get the actual digit from ASCII (0 = 48 ASCII)
-int validateInput(char input, int argc){
-	
+int validateInput(char* input, int argc){
+
+	int result = 0;	
 	if (argc != 2)
-		return 0;
-	int result = 0;
-	if((input - 48) >=0 && (input - 48 ) <=9 )
-		result = 1;
+		return result;
+	result = atoi((char*)input);
+
 	return result;
+
 }//so far this validates the first char of the input, also needs to validate that there is one
 //input
 
@@ -59,7 +69,12 @@ void* say_hello(void* data)
 
 }
 
-void* SimpleThread (int which){
+void* SimpleThread (int* which){
+
+	int *limit_ptr = (int*)which;
+	int TID = *limit_ptr;
+
+	printf("this is TID %d \n",TID);
 
 	int num, val;
 	for(num = 0; num < 20; num++){
@@ -67,11 +82,11 @@ void* SimpleThread (int which){
 			usleep(500);
 	
 		val = SharedVariable;
-		printf("*** thread %d sees value %d\n", which, val);
+		printf("*** thread %d sees value %d\n", TID, val);
 		SharedVariable = val +1 ;	
 	}
 	
 	val = SharedVariable;
-	printf("Thread %d sees final value %d\n", which, val);
+	printf("Thread %d sees final value %d\n", TID, val);
 
 }
