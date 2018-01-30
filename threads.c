@@ -2,11 +2,11 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 //-------------------
 void* SimpleThread();
-void* say_hello();
+int isDigit(char);
 int validateInput(char*, int);
 //-------------------
 int SharedVariable = 0; 
@@ -19,7 +19,7 @@ int main( int argc, char *argv[]){
 	printf("*******************************\n");
 
 	char *c;// this is basically a string
-	c = (argv[1]);
+	c = argv[1];// what is in here is a sequence of strings
 	
 	int result = validateInput(c, argc);
 
@@ -28,13 +28,14 @@ int main( int argc, char *argv[]){
 		return 0;
 	}
 
-	pthread_t myThread[result];
+	pthread_t myThread[result];	
+	int threads[result]; 
 
 	for (int i = 0; i < result; i++ ){
-	 
+	 	threads[i] = i;
 		printf("this is argc: %d and this is i: %d\n" ,argc , i);
 
-		pthread_create(&myThread[i], NULL, SimpleThread, &i );
+		pthread_create(&myThread[i], NULL, SimpleThread, &threads[i] );
 
 	}// end of for
 
@@ -46,26 +47,43 @@ int main( int argc, char *argv[]){
 		
 }
 
-//if you add 0 to a char, it basically returns its ASCII value.
-//so if we do char - 48 we get the actual digit from ASCII (0 = 48 ASCII)
+//*************************************************************************
+//validadeInput() takes in 2 inputs, 'input' is the value taken from the 
+//command line. 'argc' is the number of arguments.
+//(i.e. COMMAND LINE = ./program 32 | input = '32' and argc = 2)
+//*************************************************************************
+
 int validateInput(char* input, int argc){
 
-	int result = 0;	
-	if (argc != 2)
-		return result;
-	result = atoi((char*)input);
+	if(argc != 2)
+		return 0;
+
+	int length = strlen(input);
+	char temp = ' ';
+
+	for(int count = 0; count <length; count++){
+
+		temp = input[count];
+
+		if( isDigit(temp) == 0 )
+			return 0;
+	}
+
+	int result = atoi((char*)input);
 
 	return result;
 
-}//so far this validates the first char of the input, also needs to validate that there is one
-//input
+}
 
-void* say_hello(void* data)
+int isDigit(char position)
 {
-    char *str;
-    str = (char*)data;
- 
-        printf("%s\n",str);
+    	int number = position - 48;
+	printf("this in valid %c %d\n", position, number);
+	if(number >=0 && number <= 9){
+		return 1;
+	} else {
+		return 0;
+	}
 
 }
 
